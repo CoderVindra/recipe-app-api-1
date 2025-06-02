@@ -1,21 +1,29 @@
 ---
-name: Checks
 
-on: [push]
+# It is github action workflow file. It automates some checks everytime when someone pushes code to the repository.
+
+name: Checks # Name of the workflow. It is just label for this automation.
+
+on: [push] # This is the trigger that hits everytime when someone pushes code.
 
 jobs:
   test-lint:
-    name: Test and Lint
-    runs-on: ubuntu-24.04
+    name: Test and Lint  # Name of the job
+    runs-on: ubuntu-24.04  # Virtual machine on which job runs
+    # steps inside the job
     steps:
+      # First step to login
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Second step to checkout/logout from dockerhub
       - name: Checkout
         uses: actions/checkout@v4
+      # Third step to run Test
       - name: Test
         run: docker compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test"
+      # Fourth step to run lint
       - name: Lint
         run: docker compose run --rm app sh -c "flake8"
