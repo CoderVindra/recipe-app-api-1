@@ -3,6 +3,7 @@ Serializers for the user API view.
 """
 
 
+import logging
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 from django.utils.translation import gettext as _
@@ -23,7 +24,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Create and return user with encrypted password."""
-        return get_user_model().objects.create_user(**validated_data)
+        self.logger = logging.getLogger("watchtower")
+        user = get_user_model().objects.create_user(**validated_data)
+        self.logger.info(f"User created : \n\n {user.name}")
+        return user
 
     def update(self, instance, validated_data):
         """Update and return a user."""

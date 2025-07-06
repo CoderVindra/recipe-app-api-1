@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 from pathlib import Path
+from boto3.session import Session
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -150,4 +151,40 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
+}
+
+# cloudwatch instantiation
+CLOUDWATCH_AWS_ID = os.environ.get("AWS_ID")
+
+logger_boto3_session = Session(
+    aws_access_key_id=os.environ.get("AWS_ID"),
+    aws_secret_access_key=os.environ.get("AWS_SECRET_KEY")
+)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "aws": {
+            "format": "%(asctime)s [%(levelname)-8s] %(message)s [%(pathname)s:%(lineno)d]",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    "handlers": {
+        "watchtower": {
+            "level": "INFO",
+            "class": "watchtower.CloudWatchLogHandler",
+            # From step 2
+            "boto3_session": logger_boto3_session,
+            "log_group": "CWOSLogs",
+            # Different stream for each environment
+            "stream_name": f"logs",
+            "formatter": "aws",
+        },
+        "console": {"class": "logging.StreamHandler", "formatter": "aws",},
+    },
+    "loggers": {
+        # Use this logger to send data just to Cloudwatch
+        "watchtower": {"level": "INFO", "handlers": ["watchtower"], "propogate": False,}
+    },
 }
